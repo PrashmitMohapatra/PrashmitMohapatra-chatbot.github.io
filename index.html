@@ -21,8 +21,6 @@ height:100vh;
 overflow:hidden;
 }
 
-/* APP LAYOUT */
-
 .app{
 display:flex;
 height:100vh;
@@ -95,13 +93,7 @@ color:white;
 gap:10px;
 }
 
-.menu-btn{
-font-size:24px;
-cursor:pointer;
-display:none;
-}
-
-/* CHAT AREA */
+/* CHAT */
 
 .chat-container{
 flex:1;
@@ -119,7 +111,7 @@ display:flex;
 align-items:flex-end;
 gap:10px;
 max-width:75%;
-animation:fadeIn .25s ease;
+animation:fadeIn .2s ease;
 }
 
 .user-wrapper{
@@ -139,15 +131,11 @@ background:#1f2937;
 color:white;
 }
 
-.user .avatar{
-background:#2563eb;
-}
-
 .message{
 padding:14px 18px;
 border-radius:18px;
-line-height:1.5;
 color:white;
+line-height:1.5;
 }
 
 .user{
@@ -214,11 +202,9 @@ animation:bounce 1s infinite;
 50%{transform:translateY(-5px);}
 }
 
-/* FADE */
-
 @keyframes fadeIn{
-from{opacity:0; transform:translateY(10px);}
-to{opacity:1; transform:translateY(0);}
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
 }
 
 /* MOBILE */
@@ -232,9 +218,6 @@ z-index:1000;
 }
 .sidebar.active{
 left:0;
-}
-.menu-btn{
-display:block;
 }
 }
 
@@ -260,8 +243,7 @@ display:block;
 <div class="main">
 
 <div class="topbar">
-<div class="menu-btn" onclick="toggleSidebar()">☰</div>
-<h2 id="chatTitle">New Chat</h2>
+<h2 id="chatTitle">Prashmit AI</h2>
 </div>
 
 <div class="chat-container" id="chatBox"></div>
@@ -278,27 +260,27 @@ display:block;
 <script>
 
 /* DATA */
-
 let chats = JSON.parse(localStorage.getItem("chats")) || [];
 let currentChatId = null;
 let typingDiv = null;
 
 /* INIT */
-
 function init(){
-if(chats.length===0) createNewChat();
-else loadChat(chats[0].id);
+if(chats.length === 0){
+createNewChat();
+}else{
+loadChat(chats[0].id);
+}
 renderChatList();
 }
 
 /* NEW CHAT */
-
 function createNewChat(){
 
 const chat = {
-id:Date.now(),
-title:"New Chat",
-messages:[]
+id: Date.now(),
+title: "New Chat",
+messages: []
 };
 
 chats.unshift(chat);
@@ -307,70 +289,67 @@ loadChat(chat.id);
 renderChatList();
 }
 
-/* LOAD */
-
+/* LOAD CHAT */
 function loadChat(id){
 
-currentChatId=id;
+currentChatId = id;
 
-const chat = chats.find(c=>c.id===id);
+const chat = chats.find(c => c.id === id);
+if(!chat) return;
 
 const box = document.getElementById("chatBox");
-box.innerHTML="";
+box.innerHTML = "";
 
-chat.messages.forEach(m=>{
-renderMessage(m.role,m.text,false);
+chat.messages.forEach(m => {
+renderMessage(m.role, m.text);
 });
 
-document.getElementById("chatTitle").innerText=chat.title;
+document.getElementById("chatTitle").innerText = chat.title;
 
 renderChatList();
 }
 
 /* MESSAGE UI */
-
-function renderMessage(role,text,animate=true){
+function renderMessage(role,text){
 
 const wrapper = document.createElement("div");
-wrapper.classList.add("message-wrapper");
+wrapper.className = "message-wrapper";
 
-if(role==="user")
+if(role === "user"){
 wrapper.classList.add("user-wrapper");
+}
 
 const avatar = document.createElement("div");
-avatar.classList.add("avatar");
-avatar.textContent = role==="user" ? "👤":"🤖";
+avatar.className = "avatar";
+avatar.textContent = role === "user" ? "👤" : "🤖";
 
 const msg = document.createElement("div");
-msg.classList.add("message",role);
-msg.textContent=text;
+msg.className = "message " + role;
+msg.textContent = text;
 
 wrapper.appendChild(avatar);
 wrapper.appendChild(msg);
 
 document.getElementById("chatBox").appendChild(wrapper);
-
-document.getElementById("chatBox").scrollTop=999999;
-
+document.getElementById("chatBox").scrollTop = 999999;
 }
 
-/* TYPING INDICATOR */
-
+/* TYPING */
 function showTyping(){
 
-const box=document.getElementById("chatBox");
+const box = document.getElementById("chatBox");
 
-typingDiv=document.createElement("div");
-typingDiv.classList.add("message-wrapper");
+typingDiv = document.createElement("div");
+typingDiv.className = "message-wrapper";
 
-const avatar=document.createElement("div");
-avatar.classList.add("avatar");
-avatar.textContent="🤖";
+const avatar = document.createElement("div");
+avatar.className = "avatar";
+avatar.textContent = "🤖";
 
-const typing=document.createElement("div");
-typing.classList.add("typing");
+const typing = document.createElement("div");
+typing.className = "typing";
 
-typing.innerHTML=`
+typing.innerHTML = `
 <div class="dot"></div>
 <div class="dot"></div>
 <div class="dot"></div>
@@ -380,9 +359,7 @@ typingDiv.appendChild(avatar);
 typingDiv.appendChild(typing);
 
 box.appendChild(typingDiv);
-
-box.scrollTop=999999;
-
+box.scrollTop = 999999;
 }
 
 function hideTyping(){
@@ -390,73 +367,64 @@ if(typingDiv) typingDiv.remove();
 }
 
 /* SEND */
-
 function sendMessage(){
 
-const input=document.getElementById("messageInput");
-const text=input.value.trim();
+if(!currentChatId){
+createNewChat();
+return;
+}
+
+const input = document.getElementById("messageInput");
+const text = input.value.trim();
 if(!text) return;
 
-const chat=chats.find(c=>c.id===currentChatId);
+const chat = chats.find(c => c.id === currentChatId);
 
 /* user */
-chat.messages.push({role:"user",text});
-renderMessage("user",text);
+chat.messages.push({role:"user", text});
+renderMessage("user", text);
 
-/* bot logic */
-let reply="I'm still learning...";
+/* bot reply */
+let reply = "I'm still learning...";
 
 if(text.toLowerCase().includes("hello"))
-reply="Hello! 👋";
+reply = "Hello! 👋";
 
 if(text.toLowerCase().includes("book"))
-reply="Books open new worlds.";
+reply = "Books open new worlds.";
 
 if(text.toLowerCase().includes("author"))
-reply="Writing is creativity in motion.";
+reply = "Writing is creativity in motion.";
 
-/* typing animation */
 showTyping();
 
 setTimeout(()=>{
 hideTyping();
 
-chat.messages.push({role:"bot",text:reply});
-renderMessage("bot",reply);
+chat.messages.push({role:"bot", text:reply});
+renderMessage("bot", reply);
 
 save();
 renderChatList();
 
-},1000);
+},900);
 
-/* title */
-if(chat.title==="New Chat"){
-chat.title=text.slice(0,18);
-}
-
-save();
-renderChatList();
-
-input.value="";
+input.value = "";
 }
 
 /* CHAT LIST */
-
 function renderChatList(){
 
-const list=document.getElementById("chatList");
-list.innerHTML="";
+const list = document.getElementById("chatList");
+list.innerHTML = "";
 
-chats.forEach(c=>{
+chats.forEach(c => {
 
-const div=document.createElement("div");
+const div = document.createElement("div");
+div.className = "chat-item" + (c.id === currentChatId ? " active" : "");
+div.textContent = c.title;
 
-div.className="chat-item"+
-(c.id===currentChatId?" active":"");
-
-div.textContent=c.title;
-
-div.onclick=()=>loadChat(c.id);
+div.onclick = () => loadChat(c.id);
 
 list.appendChild(div);
 
@@ -465,26 +433,17 @@ list.appendChild(div);
 }
 
 /* SAVE */
-
 function save(){
-localStorage.setItem("chats",JSON.stringify(chats));
+localStorage.setItem("chats", JSON.stringify(chats));
 }
 
-/* SIDEBAR */
-
-function toggleSidebar(){
-document.getElementById("sidebar").classList.toggle("active");
-}
-
-/* ENTER */
-
+/* ENTER KEY */
 document.getElementById("messageInput")
-.addEventListener("keypress",e=>{
-if(e.key==="Enter") sendMessage();
+.addEventListener("keypress", e => {
+if(e.key === "Enter") sendMessage();
 });
 
 /* START */
-
 init();
 
 </script>
